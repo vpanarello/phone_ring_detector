@@ -1,17 +1,18 @@
 
-#include <stdlib.h>
-
-#include <avr/pgmspace.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <util/delay.h>
-
 //             +-\/-+
 //       PB5  1|    |8  Vcc
 //       PB3  2|    |7  PB2 - ring detector
 // led - PB4  3|    |6  PB1
 //       GND  4|    |5  PB0 - buzzer
 //             +----+
+
+
+#include <stdlib.h>
+#include <avr/pgmspace.h>
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <util/delay.h>
+
 
 #define LED_PIN 4
 #define led_init DDRB |= (1 << LED_PIN)
@@ -55,7 +56,7 @@ uint8_t ringing;
 #define N_B5 8  // 986Hz
 
 #define MUSIC_SIZE 24
-#define MUSIC_TEMPO 2
+#define MUSIC_TEMPO 1300
 
 const uint8_t music[][3] PROGMEM = {
     {N_G4, N_WHOLE, 0},
@@ -105,12 +106,13 @@ void timer0_init(void)
     DDRB |= (1 << 0);
 }
 
-void note_delay(uint16_t note_value) {
+void note_delay(uint16_t note_value)
+{
 
-    for(int i = 0; i < note_value; i++) {
-        _delay_ms(MUSIC_TEMPO);
+    for (int i = 0; i < note_value; i++)
+    {
+        _delay_us(MUSIC_TEMPO);
     }
-
 }
 
 void play_note(uint8_t note, uint8_t note_value, uint8_t pause)
@@ -183,20 +185,21 @@ int main(void)
 
     for (;;)
     {
-
-        for(int i = 0; i < MUSIC_SIZE; i++) {
-            uint8_t note = pgm_read_byte(&(music[i][0]));
-            uint8_t duration = pgm_read_byte(&(music[i][1]));
-            uint8_t pause = pgm_read_byte(&(music[i][2]));
-            play_note(note, duration, pause);
-        }
-
-
-        _delay_ms(2000);
         if (ringing > 0)
         {
             led_on;
+            for (int i = 0; i < MUSIC_SIZE; i++)
+            {
+                uint8_t note = pgm_read_byte(&(music[i][0]));
+                uint8_t duration = pgm_read_byte(&(music[i][1]));
+                uint8_t pause = pgm_read_byte(&(music[i][2]));
+                play_note(note, duration, pause);
+                led_toogle;
+            }
+            led_off;
+            _delay_ms(500);
         }
+
         else
         {
             led_off;
